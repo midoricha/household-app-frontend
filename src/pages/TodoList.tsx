@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import axios from 'axios';
-import { Container, Typography, List, ListItem, ListItemText, Checkbox, IconButton, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemText, Checkbox, IconButton, TextField, Button, Select, MenuItem, FormControl, InputLabel, SelectChangeEvent } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { ITask } from '../interfaces';
 
 function TodoList() {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<ITask[]>([]);
   const [newTask, setNewTask] = useState({ title: '', dueDate: '', recurring: '' });
 
   useEffect(() => {
-    axios.get('http://localhost:3001/api/tasks')
+    axios.get<ITask[]>('http://localhost:3001/api/tasks')
       .then(response => {
         setTasks(response.data);
       })
@@ -17,13 +18,13 @@ function TodoList() {
       });
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
     const { name, value } = e.target;
-    setNewTask({ ...newTask, [name]: value });
+    setNewTask({ ...newTask, [name as string]: value });
   };
 
   const handleAddTask = () => {
-    axios.post('http://localhost:3001/api/tasks', newTask)
+    axios.post<ITask>('http://localhost:3001/api/tasks', newTask)
       .then(response => {
         setTasks([...tasks, response.data]);
         setNewTask({ title: '', dueDate: '', recurring: '' });
@@ -33,8 +34,8 @@ function TodoList() {
       });
   };
 
-  const handleToggleComplete = (id, completed) => {
-    axios.put(`http://localhost:3001/api/tasks/${id}`, { completed: !completed })
+  const handleToggleComplete = (id: string, completed: boolean) => {
+    axios.put<ITask>(`http://localhost:3001/api/tasks/${id}`, { completed: !completed })
       .then(response => {
         setTasks(tasks.map(task => (task._id === id ? response.data : task)));
       })
@@ -43,7 +44,7 @@ function TodoList() {
       });
   };
 
-  const handleDeleteTask = (id) => {
+  const handleDeleteTask = (id: string) => {
     axios.delete(`http://localhost:3001/api/tasks/${id}`)
       .then(() => {
         setTasks(tasks.filter(task => task._id !== id));
