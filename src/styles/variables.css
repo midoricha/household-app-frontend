@@ -1,0 +1,26 @@
+:root {
+  /* Primary Colors */
+  --primary-sage: #7C9082;      /* Main brand color - calm, natural */
+  --secondary-cream: #F5F1E8;   /* Background/secondary - warm, inviting */
+  
+  /* Accent Colors */
+  --accent-terracotta: #E07A5F; /* For calls-to-action, important items */
+  --accent-lavender: #8975B4;   /* For secondary actions */
+  
+  /* Neutral Colors */
+  --neutral-100: #FFFFFF;
+  --neutral-200: #F7F7F7;
+  --neutral-300: #E6E6E6;
+  --neutral-400: #B8B8B8;
+  --neutral-500: #707070;
+  --neutral-600: #4A4A4A;
+  
+  /* Functional Colors */
+  --success: #81B29A;
+  --warning: #F2CC8F;
+  --error: #E07A5F;
+  
+  /* Typography */
+  --font-primary: 'Inter', sans-serif;
+  --font-secondary: 'DM Sans', sans-serif;
+}
