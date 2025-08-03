@@ -33,7 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onClick={toggleSidebar}
                 aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
             >
-                {isSidebarOpen ? <X size={28} /> : <Menu size={28} />}
+                {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
             <main className="main-content" onClick={closeSidebar}>

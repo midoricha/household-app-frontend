@@ -1,26 +1,26 @@
 :root {
-    /* Primary Colors */
-    --primary-sage: #7c9082; /* Main brand color - calm, natural */
-    --secondary-cream: #f5f1e8; /* Background/secondary - warm, inviting */
+    /* Primary & Accent Colors */
+    --primary-sage: #6a7d72; /* A slightly deeper, more confident sage */
+    --primary-sage-light: #eef2ef; /* For subtle backgrounds and hover states */
+    --accent-peach: #f2a68d; /* A warm, friendly accent for key actions */
+    --accent-peach-light: #fcebe4; /* A very light version for highlights */
 
-    /* Accent Colors */
-    --accent-terracotta: #e07a5f; /* For calls-to-action, important items */
-    --accent-lavender: #8975b4; /* For secondary actions */
-
-    /* Neutral Colors */
-    --neutral-100: #ffffff;
-    --neutral-200: #f7f7f7;
-    --neutral-300: #e6e6e6;
-    --neutral-400: #b8b8b8;
-    --neutral-500: #707070;
-    --neutral-600: #4a4a4a;
+    /* Neutrals - A full grayscale for depth and clarity */
+    --neutral-100: #ffffff; /* Pure white */
+    --neutral-200: #f9f9f9; /* Off-white for backgrounds */
+    --neutral-300: #f0f0f0; /* Light grey for borders and dividers */
+    --neutral-400: #d9d9d9; /* Medium-light grey for disabled states */
+    --neutral-500: #a3a3a3; /* Medium grey for secondary text */
+    --neutral-600: #525252; /* Dark grey for body text */
+    --neutral-700: #262626; /* Near-black for headings */
 
     /* Functional Colors */
-    --success: #81b29a;
-    --warning: #f2cc8f;
-    --error: #e07a5f;
+    --success: #6a994e;
+    --warning: #f7b801;
+    --error: #d00000;
+    --info: #0096c7;
 
     /* Typography */
     --font-primary: "Inter", sans-serif;
-    --font-secondary: "DM Sans", sans-serif;
+    --font-secondary: "Lora", serif; /* A serif for headings to add elegance */
 }

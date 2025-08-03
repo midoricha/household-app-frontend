@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home, CheckSquare, Book, ShoppingBag, Calendar } from "react-feather";
+import { CheckSquare, Book, ShoppingBag, Calendar } from "react-feather";
+import { Typography } from "@mui/material";
 
 interface SidebarProps {
     onNavigate?: () => void;
@@ -16,7 +17,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
     return (
         <nav className="sidebar">
             <div className="logo">
-                <h2>HomeOS</h2>
+                <Typography variant="h4" component="h2">
+                    HomeOS
+                </Typography>
             </div>
             <div className="nav-links">
                 <Link to="/tasks" className="nav-item" onClick={handleClick}>

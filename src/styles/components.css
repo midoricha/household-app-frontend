@@ -2,19 +2,25 @@
 .card {
     background: var(--neutral-100);
     border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--neutral-300);
 }
 
 /* Button Styles */
 .button {
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.5rem;
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.2s ease;
     border: none;
     cursor: pointer;
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .button-primary {
@@ -22,21 +28,29 @@
     color: var(--neutral-100);
 }
 
+.button-primary:hover {
+    opacity: 0.9;
+}
+
 .button-secondary {
-    background: var(--secondary-cream);
+    background: var(--primary-sage-light);
     color: var(--primary-sage);
 }
 
-/* Input Fields */
-.input-field {
-    padding: 0.75rem;
-    border: 1px solid var(--neutral-300);
-    border-radius: 8px;
-    background: var(--neutral-100);
-    transition: border-color 0.2s ease;
+.button-secondary:hover {
+    opacity: 0.9;
 }
 
-.input-field:focus {
-    border-color: var(--primary-sage);
-    outline: none;
+/* Notes and Due Date */
+.notes-text {
+    color: var(--neutral-500);
+    display: block;
+    margin-top: 4px;
+}
+
+.due-date-text {
+    color: var(--neutral-500);
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8rem;
 }
