@@ -1,13 +1,3 @@
-export interface ITask {
-  notes: any;
-  _id: string;
-  title: string;
-  completed: boolean;
-  completedBy?: string;
-  dueDate?: string;
-  recurring?: 'daily' | 'weekly' | 'monthly';
-}
-
 export interface IIngredient {
   name: string;
   quantity?: number;
@@ -27,4 +17,23 @@ export interface IPantryItem {
   name: string;
   quantity?: number;
   unit?: string;
+}
+
+export interface ITask {
+  _id?: string;
+  title: string;
+  completed: boolean;
+  completedBy?: string;
+  dueDate?: Date | null;
+  recurring: "never"
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "weekdays"
+  | "weekends"
+  | "biweekly"
+  | "yearly";
+  notes?: string;
+  priority: "none" | "low" | "medium" | "high";
+  isArchived: boolean;
 }

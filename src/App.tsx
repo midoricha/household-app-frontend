@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+    BrowserRouter as Router,
+    Route,
+    Routes,
+    Navigate,
+} from "react-router-dom";
 import Layout from "./components/Layout";
 import TodoList from "./pages/TodoList";
 import RecipeBook from "./pages/RecipeBook";
@@ -21,6 +26,7 @@ function App() {
         <Router>
             <Layout>
                 <Routes>
+                    <Route path="/" element={<Navigate to="/tasks" />} />
                     <Route path="/tasks" element={<TodoList />} />
                     <Route path="/recipes" element={<RecipeBook />} />
                     <Route path="/recipes/new" element={<AddRecipe />} />

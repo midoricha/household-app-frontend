@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Trash2, Check, X } from "react-feather";
 import {
@@ -15,46 +15,38 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import "../styles/components.css";
-
-interface TodoItem {
-    id?: string;
-    title: string;
-    completed: boolean;
-    completedBy?: string;
-    dueDate?: Date | null;
-    recurring?: "daily" | "weekly" | "monthly" | "";
-    notes?: string;
-}
+import { ITask } from "../interfaces";
 
 const EditTodo: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const todo: TodoItem = location.state?.todo || {
+    const todo: ITask = location.state?.todo || {
         title: "",
         completed: false,
         completedBy: "",
         dueDate: null,
-        recurring: "",
+        recurring: "never",
         notes: "",
+        priority: "none",
     };
 
-    const [title, setTitle] = useState("");
-    const [notes, setNotes] = useState("");
-    const [dueDate, setDueDate] = useState<Date | null>(null);
-    const [recurring, setRecurring] = useState("");
-    const [completed, setCompleted] = useState(false);
-    const [completedBy, setCompletedBy] = useState("");
+    const [title, setTitle] = useState(todo.title || "");
+    const [notes, setNotes] = useState(todo.notes || "");
+    const [dueDate, setDueDate] = useState<Date | null>(
+        todo.dueDate ? new Date(todo.dueDate) : null
+    );
+    const [recurring, setRecurring] = useState(todo.recurring || "never");
+    const [completed, setCompleted] = useState(todo.completed || false);
+    const [completedBy, setCompletedBy] = useState(todo.completedBy || "");
+    const [priority, setPriority] = useState<
+        "none" | "low" | "medium" | "high"
+    >(todo.priority || "none");
 
-    React.useEffect(() => {
-        if (todo.id) {
-            setTitle(todo.title || "");
-            setNotes(todo.notes || "");
-            setDueDate(todo.dueDate ? new Date(todo.dueDate) : null);
-            setRecurring(todo.recurring || "");
-            setCompleted(todo.completed || false);
-            setCompletedBy(todo.completedBy || "");
+    useEffect(() => {
+        if (!dueDate) {
+            setRecurring("never");
         }
-    }, [todo.id]);
+    }, [dueDate]);
 
     const handleSave = async () => {
         const payload = {
@@ -64,12 +56,13 @@ const EditTodo: React.FC = () => {
             recurring,
             completed,
             completedBy,
+            priority,
         };
         try {
             const baseUrl = "http://localhost:3001/api/tasks";
-            if (todo.id) {
+            if (todo._id) {
                 // Update existing task
-                await fetch(`${baseUrl}/${todo.id}`, {
+                await fetch(`${baseUrl}/${todo._id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
@@ -89,10 +82,10 @@ const EditTodo: React.FC = () => {
     };
 
     const handleDelete = async () => {
-        if (!todo.id) return;
+        if (!todo._id) return;
         try {
             const baseUrl = "http://localhost:3001/api/tasks";
-            await fetch(`${baseUrl}/${todo.id}`, {
+            await fetch(`${baseUrl}/${todo._id}`, {
                 method: "DELETE",
             });
             navigate(-1);
@@ -122,7 +115,7 @@ const EditTodo: React.FC = () => {
                     <Trash2 size={20} />
                 </Button>
                 <Typography variant="h6" style={{ margin: 0, fontWeight: 600 }}>
-                    {todo.id ? "Edit Reminder" : "Add Reminder"}
+                    {todo._id ? "Edit Reminder" : "Add Reminder"}
                 </Typography>
                 <Button
                     onClick={() => navigate(-1)}
@@ -175,20 +168,58 @@ const EditTodo: React.FC = () => {
                         }}
                     />
                 </LocalizationProvider>
+                {dueDate && (
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel id="recurring-label">Recurring</InputLabel>
+                        <Select
+                            labelId="recurring-label"
+                            value={recurring}
+                            label="Recurring"
+                            onChange={(e) =>
+                                setRecurring(
+                                    e.target.value as
+                                        | "never"
+                                        | "daily"
+                                        | "weekly"
+                                        | "monthly"
+                                        | "weekdays"
+                                        | "weekends"
+                                        | "biweekly"
+                                        | "yearly"
+                                )
+                            }
+                        >
+                            <MenuItem value="never">Never</MenuItem>
+                            <MenuItem value="daily">Daily</MenuItem>
+                            <MenuItem value="weekly">Weekly</MenuItem>
+                            <MenuItem value="monthly">Monthly</MenuItem>
+                            <MenuItem value="weekdays">Weekdays</MenuItem>
+                            <MenuItem value="weekends">Weekends</MenuItem>
+                            <MenuItem value="biweekly">Biweekly</MenuItem>
+                            <MenuItem value="yearly">Yearly</MenuItem>
+                        </Select>
+                    </FormControl>
+                )}
                 <FormControl fullWidth margin="normal">
-                    <InputLabel id="recurring-label">Recurring</InputLabel>
+                    <InputLabel id="priority-label">Priority</InputLabel>
                     <Select
-                        labelId="recurring-label"
-                        value={recurring || todo.recurring || ""}
-                        label="Recurring"
+                        labelId="priority-label"
+                        value={priority}
+                        label="Priority"
                         onChange={(e) =>
-                            setRecurring((e.target.value ?? "") as string)
+                            setPriority(
+                                e.target.value as
+                                    | "none"
+                                    | "low"
+                                    | "medium"
+                                    | "high"
+                            )
                         }
                     >
-                        <MenuItem value="">None</MenuItem>
-                        <MenuItem value="daily">Daily</MenuItem>
-                        <MenuItem value="weekly">Weekly</MenuItem>
-                        <MenuItem value="monthly">Monthly</MenuItem>
+                        <MenuItem value="none">None</MenuItem>
+                        <MenuItem value="low">Low</MenuItem>
+                        <MenuItem value="medium">Medium</MenuItem>
+                        <MenuItem value="high">High</MenuItem>
                     </Select>
                 </FormControl>
                 <TextField

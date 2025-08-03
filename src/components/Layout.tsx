@@ -19,23 +19,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     return (
         <div className="app-layout">
-            <button 
-                className="mobile-menu-button" 
+            <div
+                className={`mobile-overlay ${isSidebarOpen ? "open" : ""}`}
+                onClick={closeSidebar}
+            />
+
+            <div className={`sidebar-container ${isSidebarOpen ? "open" : ""}`}>
+                <Sidebar onNavigate={closeSidebar} />
+            </div>
+
+            <button
+                className="mobile-menu-button"
                 onClick={toggleSidebar}
                 aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
             >
-                {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                {isSidebarOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
-            
-            <div 
-                className={`mobile-overlay ${isSidebarOpen ? 'open' : ''}`} 
-                onClick={closeSidebar}
-            />
-            
-            <div className={`sidebar-container ${isSidebarOpen ? 'open' : ''}`}>
-                <Sidebar onNavigate={closeSidebar} />
-            </div>
-            
+
             <main className="main-content" onClick={closeSidebar}>
                 {children}
             </main>

@@ -20,10 +20,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
             </div>
             <div className="nav-links">
                 <Link to="/tasks" className="nav-item" onClick={handleClick}>
-                    <Home size={20} />
-                    <span>Dashboard</span>
-                </Link>
-                <Link to="/tasks" className="nav-item" onClick={handleClick}>
                     <CheckSquare size={20} />
                     <span>Tasks</span>
                 </Link>

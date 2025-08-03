@@ -74,20 +74,26 @@
 
     .mobile-menu-button {
         position: fixed;
-        top: 1rem;
-        left: 1rem;
+        top: 1.25rem;
+        left: 1.25rem;
         z-index: 1001;
+        color: var(--neutral-100);
         background: var(--primary-sage);
-        color: white;
         border: none;
         border-radius: 50%;
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        font-size: 0.8rem;
+    }
+
+    .sidebar-container.open ~ .mobile-menu-button {
+        transform: translateX(250px);
     }
 
     .mobile-overlay {
