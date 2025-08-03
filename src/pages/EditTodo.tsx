@@ -56,6 +56,7 @@ const EditTodo: React.FC = () => {
         }
     }, [dueDate]);
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
     const handleSave = async () => {
         const payload = {
             title,
@@ -67,7 +68,7 @@ const EditTodo: React.FC = () => {
             priority,
         };
         try {
-            const baseUrl = "http://localhost:3001/api/tasks";
+            const baseUrl = `${API_BASE_URL}/tasks`;
             if (todo._id) {
                 // Update existing task
                 await fetch(`${baseUrl}/${todo._id}`, {
@@ -100,7 +101,7 @@ const EditTodo: React.FC = () => {
     const confirmDeleteTask = async () => {
         if (!todo._id) return;
         try {
-            const baseUrl = "http://localhost:3001/api/tasks";
+            const baseUrl = `${API_BASE_URL}/tasks`;
             await fetch(`${baseUrl}/${todo._id}`, {
                 method: "DELETE",
             });

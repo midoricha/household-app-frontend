@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -30,9 +31,10 @@ function TodoList() {
     const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
     const navigate = useNavigate();
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
     const fetchTasks = () => {
         axios
-            .get<ITask[]>("http://localhost:3001/api/tasks")
+            .get<ITask[]>(`${API_BASE_URL}/tasks`)
             .then((response) => {
                 setTasks(response.data);
             })
@@ -43,7 +45,7 @@ function TodoList() {
 
     const fetchArchivedTasks = () => {
         axios
-            .get<ITask[]>("http://localhost:3001/api/tasks/archived")
+            .get<ITask[]>(`${API_BASE_URL}/tasks/archived`)
             .then((response) => {
                 setArchivedTasks(response.data);
             })
@@ -68,7 +70,7 @@ function TodoList() {
 
     const handleToggleComplete = (task: ITask) => {
         axios
-            .put<ITask>(`http://localhost:3001/api/tasks/${task._id}`, {
+            .put<ITask>(`${API_BASE_URL}/tasks/${task._id}`, {
                 completed: !task.completed,
             })
             .then(() => {
@@ -92,7 +94,7 @@ function TodoList() {
     const confirmDeleteTask = () => {
         if (taskToDelete) {
             axios
-                .delete(`http://localhost:3001/api/tasks/${taskToDelete}`)
+                .delete(`${API_BASE_URL}/tasks/${taskToDelete}`)
                 .then(() => {
                     fetchTasks();
                     if (isArchivedVisible) {

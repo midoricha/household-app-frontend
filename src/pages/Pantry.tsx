@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import axios from 'axios';
 import { Container, Typography, List, ListItem, ListItemText, IconButton, TextField, Button } from '@mui/material';
@@ -8,8 +9,9 @@ function Pantry() {
   const [items, setItems] = useState<IPantryItem[]>([]);
   const [newItem, setNewItem] = useState({ name: '', quantity: '', unit: '' });
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
   useEffect(() => {
-    axios.get<IPantryItem[]>('http://localhost:3001/api/pantry')
+    axios.get<IPantryItem[]>(`${API_BASE_URL}/pantry`)
       .then(response => {
         setItems(response.data);
       })
@@ -36,7 +38,7 @@ function Pantry() {
       itemToPost.quantity = Number(newItem.quantity);
     }
 
-    axios.post<IPantryItem>('http://localhost:3001/api/pantry', itemToPost)
+    axios.post<IPantryItem>(`${API_BASE_URL}/pantry`, itemToPost)
       .then(response => {
         setItems([...items, response.data]);
         setNewItem({ name: '', quantity: '', unit: '' });
@@ -47,7 +49,7 @@ function Pantry() {
   };
 
   const handleDeleteItem = (id: string) => {
-    axios.delete(`http://localhost:3001/api/pantry/${id}`)
+    axios.delete(`${API_BASE_URL}/pantry/${id}`)
       .then(() => {
         setItems(items.filter(item => item._id !== id));
       })
@@ -57,8 +59,8 @@ function Pantry() {
   };
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
+    <Container sx={{ pt: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
         Pantry
       </Typography>
       <TextField
@@ -68,6 +70,7 @@ function Pantry() {
         onChange={handleInputChange}
         fullWidth
         margin="normal"
+        sx={{ mb: 1.5, borderRadius: 2 }}
       />
       <TextField
         label="Quantity"
@@ -77,6 +80,7 @@ function Pantry() {
         onChange={handleInputChange}
         fullWidth
         margin="normal"
+        sx={{ mb: 1.5, borderRadius: 2 }}
       />
       <TextField
         label="Unit"
@@ -85,8 +89,9 @@ function Pantry() {
         onChange={handleInputChange}
         fullWidth
         margin="normal"
+        sx={{ mb: 2, borderRadius: 2 }}
       />
-      <Button onClick={handleAddItem} variant="contained" color="primary">
+      <Button onClick={handleAddItem} variant="contained" color="primary" size="large" sx={{ mb: 3, borderRadius: 8, fontWeight: 600, fontSize: "1.05rem", px: 3, py: 1.2, letterSpacing: 0.2 }}>
         Add Item
       </Button>
       <List>
@@ -98,6 +103,7 @@ function Pantry() {
                 <DeleteIcon />
               </IconButton>
             }
+            sx={{ borderRadius: 2, mb: 1, boxShadow: "0 1px 4px 0 rgba(60,80,60,0.04)", transition: "background 0.2s", '&:hover': { backgroundColor: 'primary.light' } }}
           >
             <ListItemText 
               primary={item.name} 
