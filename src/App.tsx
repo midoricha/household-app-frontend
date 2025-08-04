@@ -10,6 +10,7 @@ import TodoList from "./pages/TodoList";
 import RecipeBook from "./pages/RecipeBook";
 import Pantry from "./pages/Pantry";
 import MealPlanner from "./pages/MealPlanner";
+import GroceryListPage from "./pages/GroceryList";
 import AddRecipe from "./pages/AddRecipe";
 import RecipeDetails from "./pages/RecipeDetails";
 import EditTodo from "./pages/EditTodo";
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/recipes/new" element={<AddRecipe />} />
                 <Route path="/recipes/:id" element={<RecipeDetails />} />
                 <Route path="/pantry" element={<Pantry />} />
+                <Route path="/grocery-list" element={<GroceryListPage />} />
                 <Route path="/meal-planner" element={<MealPlanner />} />
             </Routes>
         </Layout>

@@ -31,7 +31,8 @@ function TodoList() {
     const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+    const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
     const fetchTasks = () => {
         axios
             .get<ITask[]>(`${API_BASE_URL}/tasks`)
@@ -229,7 +230,7 @@ function TodoList() {
                                 primary={
                                     <Box display="flex" alignItems="center">
                                         <Typography
-                                            component="span"
+                                            component="div"
                                             variant="body1"
                                             fontWeight={600}
                                             fontSize="1.08rem"
@@ -261,6 +262,8 @@ function TodoList() {
                                                 variant="body2"
                                                 color="text.secondary"
                                                 mt={0.5}
+                                                component="span"
+                                                sx={{ display: "block" }}
                                             >
                                                 {task.notes}
                                             </Typography>

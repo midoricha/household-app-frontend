@@ -37,3 +37,18 @@ export interface ITask {
   priority: "none" | "low" | "medium" | "high";
   isArchived: boolean;
 }
+
+export interface IGroceryListItem {
+  _id: string;
+  name: string;
+  quantity?: number;
+  unit?: string;
+  isChecked: boolean;
+}
+
+export interface IMealPlanEntry {
+  _id: string;
+  date: Date;
+  recipeId: IRecipe;
+  mealType?: string;
+}

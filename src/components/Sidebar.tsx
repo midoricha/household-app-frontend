@@ -1,6 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { CheckSquare, Book, ShoppingBag, Calendar } from "react-feather";
+import {
+    CheckSquare,
+    Book,
+    ShoppingBag,
+    Calendar,
+    ShoppingCart,
+} from "react-feather";
 import { Typography } from "@mui/material";
 
 interface SidebarProps {
@@ -33,6 +39,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
                 <Link to="/pantry" className="nav-item" onClick={handleClick}>
                     <ShoppingBag size={20} />
                     <span>Pantry</span>
+                </Link>
+                <Link
+                    to="/grocery-list"
+                    className="nav-item"
+                    onClick={handleClick}
+                >
+                    <ShoppingCart size={20} />
+                    <span>Grocery List</span>
                 </Link>
                 <Link
                     to="/meal-planner"
