@@ -17,6 +17,7 @@ export interface IPantryItem {
   name: string;
   quantity?: number;
   unit?: string;
+  category?: string;
 }
 
 export interface ITask {
@@ -44,6 +45,7 @@ export interface IGroceryListItem {
   quantity?: number;
   unit?: string;
   isChecked: boolean;
+  category?: string;
 }
 
 export interface IMealPlanEntry {

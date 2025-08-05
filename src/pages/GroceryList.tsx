@@ -13,14 +13,23 @@ import {
     Checkbox,
     IconButton,
     Paper,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
 } from "@mui/material";
-import { ShoppingCart } from "react-feather";
+import { Check, X, ShoppingCart, Trash2 } from "react-feather";
+import { GROCERY_CATEGORIES } from "../categories";
 
 const GroceryListPage: React.FC = () => {
     const [items, setItems] = useState<IGroceryListItem[]>([]);
     const [newItemName, setNewItemName] = useState("");
     const [newItemQuantity, setNewItemQuantity] = useState<number | string>("");
     const [newItemUnit, setNewItemUnit] = useState("");
+    const [newItemCategory, setNewItemCategory] = useState<string>("Other");
+    const [editingItemId, setEditingItemId] = useState<string | null>(null);
+    const [editingItemName, setEditingItemName] = useState<string>("");
+    const [editingItemCategory, setEditingItemCategory] = useState<string>("");
 
     const API_BASE_URL =
         import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
@@ -65,6 +74,7 @@ const GroceryListPage: React.FC = () => {
                 isChecked: false,
                 quantity: newItemQuantity ? Number(newItemQuantity) : undefined,
                 unit: newItemUnit || undefined,
+                category: newItemCategory,
             };
             const response = await axios.post(
                 `${API_BASE_URL}/grocery-list`,
@@ -74,8 +84,51 @@ const GroceryListPage: React.FC = () => {
             setNewItemName("");
             setNewItemQuantity("");
             setNewItemUnit("");
+            setNewItemCategory("Other");
         } catch (error) {
             console.error("Error adding grocery item:", error);
+        }
+    };
+
+    const handleDeleteItem = async (id: string) => {
+        try {
+            await axios.delete(`${API_BASE_URL}/grocery-list/${id}`);
+            setItems(items.filter((item) => item._id !== id));
+        } catch (error) {
+            console.error("Error deleting grocery item:", error);
+        }
+    };
+
+    const handleEditItem = (item: IGroceryListItem) => {
+        setEditingItemId(item._id);
+        setEditingItemName(item.name);
+        setEditingItemCategory(item.category || "Other");
+    };
+
+    const handleCancelEdit = () => {
+        setEditingItemId(null);
+        setEditingItemName("");
+        setEditingItemCategory("");
+    };
+
+    const handleUpdateItem = async (item: IGroceryListItem) => {
+        if (editingItemName.trim() === "") return;
+        try {
+            const updatedItem = {
+                ...item,
+                name: editingItemName,
+                category: editingItemCategory,
+            };
+            await axios.put(
+                `${API_BASE_URL}/grocery-list/${item._id}`,
+                updatedItem
+            );
+            // After updating, we need to refetch or smartly update the list
+            // to reflect potential category changes.
+            fetchItems();
+            setEditingItemId(null);
+        } catch (error) {
+            console.error("Error updating grocery item:", error);
         }
     };
 
@@ -87,6 +140,15 @@ const GroceryListPage: React.FC = () => {
             console.error("Error moving items to pantry:", error);
         }
     };
+
+    const groupedItems = items.reduce((acc, item) => {
+        const category = item.category || "Other";
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(item);
+        return acc;
+    }, {} as Record<string, IGroceryListItem[]>);
 
     return (
         <Container sx={{ pt: 4 }}>
@@ -135,6 +197,25 @@ const GroceryListPage: React.FC = () => {
                         onChange={(e) => setNewItemUnit(e.target.value)}
                         sx={{ flex: 1 }}
                     />
+                    <FormControl
+                        variant="outlined"
+                        sx={{ flex: 1, width: "100%" }}
+                    >
+                        <InputLabel>Category</InputLabel>
+                        <Select
+                            value={newItemCategory}
+                            onChange={(e) =>
+                                setNewItemCategory(e.target.value as string)
+                            }
+                            label="Category"
+                        >
+                            {GROCERY_CATEGORIES.map((cat) => (
+                                <MenuItem key={cat} value={cat}>
+                                    {cat}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                     <Button
                         type="submit"
                         variant="contained"
@@ -146,43 +227,165 @@ const GroceryListPage: React.FC = () => {
                 </Box>
             </Paper>
 
-            <List>
-                {Array.isArray(items) &&
-                    items.map((item) => (
-                        <ListItem
-                            key={item._id}
-                            sx={{
-                                mb: 1,
-                                borderRadius: 2,
-                                boxShadow: "0 1px 4px 0 rgba(60,80,60,0.04)",
-                                bgcolor: "background.paper",
-                            }}
-                            secondaryAction={
-                                <Checkbox
-                                    edge="end"
-                                    onChange={() => handleToggleItem(item)}
-                                    checked={item.isChecked}
-                                />
-                            }
-                        >
-                            <ListItemText
-                                primary={item.name}
-                                secondary={
-                                    item.quantity
-                                        ? `Quantity: ${item.quantity} ${
-                                              item.unit || ""
-                                          }`
-                                        : null
-                                }
+            {Object.entries(groupedItems).map(([category, itemsInCategory]) => (
+                <Box key={category} sx={{ mb: 4 }}>
+                    <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
+                        {category}
+                    </Typography>
+                    <List>
+                        {itemsInCategory.map((item) => (
+                            <ListItem
+                                key={item._id}
                                 sx={{
-                                    textDecoration: item.isChecked
-                                        ? "line-through"
-                                        : "none",
+                                    mb: 1,
+                                    borderRadius: 2,
+                                    boxShadow:
+                                        "0 1px 4px 0 rgba(60,80,60,0.04)",
+                                    bgcolor: "background.paper",
+                                    p: 2,
                                 }}
-                            />
-                        </ListItem>
-                    ))}
-            </List>
+                            >
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        width: "100%",
+                                    }}
+                                >
+                                    <Checkbox
+                                        edge="start"
+                                        onChange={() => handleToggleItem(item)}
+                                        checked={item.isChecked}
+                                        sx={{ p: 0, mr: 2 }}
+                                    />
+                                    {editingItemId === item._id ? (
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                flexDirection: {
+                                                    xs: "column",
+                                                    sm: "row",
+                                                },
+                                                alignItems: {
+                                                    xs: "flex-start",
+                                                    sm: "center",
+                                                },
+                                                width: "100%",
+                                                gap: 1,
+                                            }}
+                                        >
+                                            <TextField
+                                                value={editingItemName}
+                                                onChange={(e) =>
+                                                    setEditingItemName(
+                                                        e.target.value
+                                                    )
+                                                }
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        handleUpdateItem(item);
+                                                    }
+                                                }}
+                                                autoFocus
+                                                variant="standard"
+                                                sx={{
+                                                    flex: 1,
+                                                    width: "100%",
+                                                }}
+                                            />
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 0.5,
+                                                }}
+                                            >
+                                                <FormControl
+                                                    sx={{ minWidth: 120 }}
+                                                >
+                                                    <Select
+                                                        value={
+                                                            editingItemCategory
+                                                        }
+                                                        onChange={(e) =>
+                                                            setEditingItemCategory(
+                                                                e.target
+                                                                    .value as string
+                                                            )
+                                                        }
+                                                        variant="standard"
+                                                        sx={{
+                                                            fontSize:
+                                                                "0.875rem",
+                                                        }}
+                                                    >
+                                                        {GROCERY_CATEGORIES.map(
+                                                            (cat) => (
+                                                                <MenuItem
+                                                                    key={cat}
+                                                                    value={cat}
+                                                                >
+                                                                    {cat}
+                                                                </MenuItem>
+                                                            )
+                                                        )}
+                                                    </Select>
+                                                </FormControl>
+                                                <IconButton
+                                                    onClick={() =>
+                                                        handleUpdateItem(item)
+                                                    }
+                                                >
+                                                    <Check size={20} />
+                                                </IconButton>
+                                                <IconButton
+                                                    onClick={handleCancelEdit}
+                                                >
+                                                    <X size={20} />
+                                                </IconButton>
+                                            </Box>
+                                        </Box>
+                                    ) : (
+                                        <>
+                                            <ListItemText
+                                                primary={item.name}
+                                                secondary={
+                                                    item.quantity
+                                                        ? `Quantity: ${
+                                                              item.quantity
+                                                          } ${item.unit || ""}`
+                                                        : null
+                                                }
+                                                sx={{
+                                                    textDecoration:
+                                                        item.isChecked
+                                                            ? "line-through"
+                                                            : "none",
+                                                    flex: 1,
+                                                    mr: 2,
+                                                    cursor: "pointer",
+                                                }}
+                                                onClick={() =>
+                                                    handleEditItem(item)
+                                                }
+                                            />
+                                            <IconButton
+                                                edge="end"
+                                                aria-label="delete"
+                                                onClick={() =>
+                                                    handleDeleteItem(item._id)
+                                                }
+                                            >
+                                                <Trash2 size={20} />
+                                            </IconButton>
+                                        </>
+                                    )}
+                                </Box>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            ))}
 
             <Button
                 onClick={handleMoveToPantry}

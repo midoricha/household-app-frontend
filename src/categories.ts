@@ -1,0 +1,16 @@
+export const GROCERY_CATEGORIES = [
+    "Produce",
+    "Dairy, Cheese, & Eggs",
+    "Meat & Seafood",
+    "Bakery & Bread",
+    "Sauces & Condiments",
+    "Pantry",
+    "Frozen Foods",
+    "Beverages",
+    "Snacks",
+    "Household",
+    "Personal Care",
+    "Pets",
+    "Chinese",
+    "Other",
+];

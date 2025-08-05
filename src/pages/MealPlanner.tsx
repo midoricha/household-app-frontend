@@ -5,17 +5,26 @@ import {
     Typography,
     Button,
     Paper,
-    Grid,
     Box,
     Modal,
     List,
     ListItem,
     ListItemText,
     ListItemButton,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    ListSubheader,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { IMealPlanEntry, IRecipe, IIngredient } from "../interfaces";
-import { format, startOfWeek, addDays, endOfWeek } from "date-fns";
+import {
+    IMealPlanEntry,
+    IRecipe,
+    IIngredient,
+    IPantryItem,
+} from "../interfaces";
+import { format, addDays } from "date-fns";
 
 const style = {
     position: "absolute" as "absolute",
@@ -31,10 +40,10 @@ const style = {
 
 const MealPlanner: React.FC = () => {
     const [mealPlan, setMealPlan] = useState<IMealPlanEntry[]>([]);
-    const [week, setWeek] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState(new Date());
     const [recipes, setRecipes] = useState<IRecipe[]>([]);
+    const [pantryItems, setPantryItems] = useState<IPantryItem[]>([]);
     const [isModalOpen, setModalOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [missingIngredients, setMissingIngredients] = useState<IIngredient[]>(
         []
     );
@@ -44,8 +53,27 @@ const MealPlanner: React.FC = () => {
         null
     );
 
+    // New state for Daily Summary
+    const [dailySummary, setDailySummary] = useState<{
+        available: IPantryItem[];
+        missing: IIngredient[];
+        needsConfirmation: any[];
+    }>({ available: [], missing: [], needsConfirmation: [] });
+    const [resolvedMatches, setResolvedMatches] = useState<
+        Record<string, string>
+    >({});
+
     const API_BASE_URL =
         import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+
+    const fetchPantryItems = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/pantry`);
+            setPantryItems(response.data);
+        } catch (error) {
+            console.error("Error fetching pantry items:", error);
+        }
+    };
 
     const fetchRecipes = async () => {
         try {
@@ -57,13 +85,10 @@ const MealPlanner: React.FC = () => {
     };
 
     const fetchMealPlan = async () => {
-        const startDate = startOfWeek(week);
-        const endDate = endOfWeek(week);
         try {
             const response = await axios.get(`${API_BASE_URL}/meal-planner`, {
                 params: {
-                    startDate: startDate.toISOString(),
-                    endDate: endDate.toISOString(),
+                    date: currentDate.toISOString(),
                 },
             });
             setMealPlan(response.data);
@@ -72,28 +97,59 @@ const MealPlanner: React.FC = () => {
         }
     };
 
+    const checkIngredientsForDay = async () => {
+        if (mealPlan.length === 0) {
+            setDailySummary({
+                available: [],
+                missing: [],
+                needsConfirmation: [],
+            });
+            return;
+        }
+
+        const aggregatedIngredients = mealPlan.flatMap(
+            (meal) => meal.recipeId.ingredients
+        );
+
+        try {
+            const response = await axios.post(
+                `${API_BASE_URL}/pantry/check-ingredients`,
+                {
+                    ingredients: aggregatedIngredients,
+                }
+            );
+            setDailySummary(response.data);
+        } catch (error) {
+            console.error("Error checking day ingredients:", error);
+        }
+    };
+
     useEffect(() => {
         fetchMealPlan();
-        fetchRecipes();
-    }, [week]);
+    }, [currentDate]);
 
-    const handleOpenModal = (date: Date) => {
-        setSelectedDate(date);
+    useEffect(() => {
+        checkIngredientsForDay();
+    }, [mealPlan]);
+
+    useEffect(() => {
+        fetchRecipes();
+        fetchPantryItems();
+    }, []);
+
+    const handleOpenModal = () => {
         setModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setModalOpen(false);
-        setSelectedDate(null);
     };
 
     const handleAddRecipeToPlan = async (recipeId: string) => {
-        if (!selectedDate) return;
         try {
             const response = await axios.post(`${API_BASE_URL}/meal-planner`, {
                 recipeId,
-                date: selectedDate.toISOString(),
-                mealType: "Dinner", // Or make this selectable
+                date: currentDate.toISOString(),
             });
             if (
                 response.data.missingIngredients &&
@@ -127,84 +183,260 @@ const MealPlanner: React.FC = () => {
         }
     };
 
-    const renderWeekDays = () => {
-        const days = [];
-        const startDate = startOfWeek(week);
+    const handleMatchResolved = (
+        ingredientName: string,
+        pantryItemId: string
+    ) => {
+        setResolvedMatches((prev) => ({
+            ...prev,
+            [ingredientName]: pantryItemId,
+        }));
+    };
 
-        for (let i = 0; i < 7; i++) {
-            const day = addDays(startDate, i);
-            const mealsForDay = mealPlan.filter(
-                (entry) =>
-                    format(new Date(entry.date), "yyyy-MM-dd") ===
-                    format(day, "yyyy-MM-dd")
-            );
+    const getFinalMissingIngredients = () => {
+        const confirmedMissing = dailySummary.needsConfirmation
+            .filter(
+                (item) =>
+                    resolvedMatches[item.ingredient.name] === "add-to-missing"
+            )
+            .map((item) => item.ingredient);
 
-            days.push(
-                <Grid size={{ xs: 12 }} key={day.toString()}>
-                    <Paper
-                        elevation={2}
-                        sx={{
-                            p: 2,
-                            height: "100%",
-                            borderRadius: 4,
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "space-between",
-                        }}
-                    >
-                        <div>
+        return [...dailySummary.missing, ...confirmedMissing];
+    };
+
+    const handleAddAllToGroceryList = async () => {
+        const itemsToAdd = getFinalMissingIngredients().map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            unit: item.unit,
+            isChecked: false,
+        }));
+
+        if (itemsToAdd.length === 0) return;
+
+        try {
+            await axios.post(`${API_BASE_URL}/grocery-list/batch-add`, {
+                items: itemsToAdd,
+            });
+            // Maybe show a success message
+            setResolvedMatches({});
+        } catch (error) {
+            console.error("Error adding batch to grocery list:", error);
+        }
+    };
+
+    const renderDay = () => {
+        return (
+            <Paper
+                elevation={2}
+                sx={{
+                    p: 2,
+                    borderRadius: 4,
+                }}
+            >
+                {mealPlan.map((meal) => (
+                    <Box key={meal._id} sx={{ my: 1 }}>
+                        <Link
+                            to={`/recipes/${meal.recipeId._id}`}
+                            style={{
+                                textDecoration: "none",
+                                color: "inherit",
+                            }}
+                        >
                             <Typography
                                 variant="h6"
-                                component="h3"
-                                align="center"
+                                sx={{
+                                    "&:hover": {
+                                        textDecoration: "underline",
+                                    },
+                                }}
                             >
-                                {format(day, "EEE")}
+                                {meal.recipeId.title}
                             </Typography>
-                            <Typography
-                                variant="subtitle1"
-                                align="center"
-                                gutterBottom
-                            >
-                                {format(day, "MMM d")}
-                            </Typography>
-                            {mealsForDay.map((meal) => (
-                                <Box key={meal._id} sx={{ my: 1 }}>
-                                    <Link
-                                        to={`/recipes/${meal.recipeId._id}`}
-                                        style={{
-                                            textDecoration: "none",
-                                            color: "inherit",
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="body2"
-                                            sx={{
-                                                "&:hover": {
-                                                    textDecoration: "underline",
-                                                },
-                                            }}
-                                        >
-                                            {meal.recipeId.title}
-                                        </Typography>
-                                    </Link>
-                                </Box>
-                            ))}
-                        </div>
-                        <Button
-                            size="small"
-                            fullWidth
-                            variant="outlined"
-                            color="primary"
-                            onClick={() => handleOpenModal(day)}
-                            sx={{ mt: 2 }}
-                        >
-                            Add Recipe
-                        </Button>
-                    </Paper>
-                </Grid>
+                        </Link>
+                    </Box>
+                ))}
+                <Button
+                    fullWidth
+                    variant="outlined"
+                    color="primary"
+                    onClick={handleOpenModal}
+                    sx={{ mt: 2 }}
+                >
+                    Add Recipe
+                </Button>
+            </Paper>
+        );
+    };
+
+    const renderIngredientSummary = () => {
+        const hasIngredients =
+            dailySummary.available.length > 0 ||
+            dailySummary.missing.length > 0 ||
+            dailySummary.needsConfirmation.length > 0;
+
+        if (!hasIngredients) {
+            return (
+                <Typography sx={{ mt: 4, textAlign: "center" }}>
+                    No meals planned for this day. Add a recipe to get started.
+                </Typography>
             );
         }
-        return days;
+
+        return (
+            <Box sx={{ mt: 4 }}>
+                <Typography variant="h5" component="h2" gutterBottom>
+                    Ingredient Summary
+                </Typography>
+
+                {/* Needs Confirmation Section */}
+                {dailySummary.needsConfirmation.length > 0 && (
+                    <Box mb={3}>
+                        <Typography variant="h6" gutterBottom>
+                            Link Ingredients to Pantry Items
+                        </Typography>
+                        <List>
+                            {dailySummary.needsConfirmation.map(
+                                (item, index) => {
+                                    return (
+                                        <ListItem key={index} divider>
+                                            <ListItemText
+                                                primary={item.ingredient.name}
+                                                secondary="Recipe Ingredient"
+                                            />
+                                            <FormControl
+                                                sx={{ m: 1, minWidth: 220 }}
+                                                size="small"
+                                            >
+                                                <InputLabel>
+                                                    Select Pantry Item
+                                                </InputLabel>
+                                                <Select
+                                                    value={
+                                                        resolvedMatches[
+                                                            item.ingredient.name
+                                                        ] || ""
+                                                    }
+                                                    label="Select Pantry Item"
+                                                    onChange={(e) =>
+                                                        handleMatchResolved(
+                                                            item.ingredient
+                                                                .name,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                >
+                                                    <MenuItem value="add-to-missing">
+                                                        <em>
+                                                            None - Mark as
+                                                            Missing
+                                                        </em>
+                                                    </MenuItem>
+                                                    {item.potentialMatches
+                                                        .length > 0 && (
+                                                        <ListSubheader>
+                                                            Potential Matches
+                                                        </ListSubheader>
+                                                    )}
+                                                    {item.potentialMatches.map(
+                                                        (
+                                                            match: IPantryItem
+                                                        ) => (
+                                                            <MenuItem
+                                                                key={match._id}
+                                                                value={
+                                                                    match._id
+                                                                }
+                                                            >
+                                                                {match.name}
+                                                            </MenuItem>
+                                                        )
+                                                    )}
+                                                    {item.potentialMatches
+                                                        .length > 0 && (
+                                                        <ListSubheader>
+                                                            All Pantry Items
+                                                        </ListSubheader>
+                                                    )}
+                                                    {pantryItems
+                                                        .filter(
+                                                            (p) =>
+                                                                !item.potentialMatches.some(
+                                                                    (
+                                                                        pm: IPantryItem
+                                                                    ) =>
+                                                                        pm._id ===
+                                                                        p._id
+                                                                )
+                                                        )
+                                                        .map((pantryItem) => (
+                                                            <MenuItem
+                                                                key={
+                                                                    pantryItem._id
+                                                                }
+                                                                value={
+                                                                    pantryItem._id
+                                                                }
+                                                            >
+                                                                {
+                                                                    pantryItem.name
+                                                                }
+                                                            </MenuItem>
+                                                        ))}
+                                                </Select>
+                                            </FormControl>
+                                        </ListItem>
+                                    );
+                                }
+                            )}
+                        </List>
+                    </Box>
+                )}
+
+                {/* Available Ingredients Section */}
+                {dailySummary.available.length > 0 && (
+                    <Box mb={3}>
+                        <Typography variant="h6" gutterBottom>
+                            Available in Pantry
+                        </Typography>
+                        <List>
+                            {dailySummary.available.map((item, index) => (
+                                <ListItem key={index}>
+                                    <ListItemText primary={item.name} />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Box>
+                )}
+
+                {/* Missing Ingredients Section */}
+                {getFinalMissingIngredients().length > 0 && (
+                    <Box>
+                        <Typography variant="h6" gutterBottom>
+                            Missing Ingredients
+                        </Typography>
+                        <List>
+                            {getFinalMissingIngredients().map((item, index) => (
+                                <ListItem key={index}>
+                                    <ListItemText
+                                        primary={`${item.name} (${item.quantity} ${item.unit})`}
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
+                        <Button
+                            onClick={handleAddAllToGroceryList}
+                            variant="contained"
+                            color="secondary"
+                            fullWidth
+                            sx={{ mt: 1 }}
+                        >
+                            Add All Missing to Grocery List
+                        </Button>
+                    </Box>
+                )}
+            </Box>
+        );
     };
 
     return (
@@ -221,25 +453,25 @@ const MealPlanner: React.FC = () => {
                 }}
             >
                 <Button
-                    onClick={() => setWeek(addDays(week, -7))}
+                    onClick={() => setCurrentDate(addDays(currentDate, -1))}
                     variant="outlined"
                 >
-                    Previous Week
+                    Yesterday
                 </Button>
                 <Typography variant="h5">
-                    {format(startOfWeek(week), "MMM d")} -{" "}
-                    {format(endOfWeek(week), "MMM d, yyyy")}
+                    {format(currentDate, "MMMM d, yyyy")}
                 </Typography>
                 <Button
-                    onClick={() => setWeek(addDays(week, 7))}
+                    onClick={() => setCurrentDate(addDays(currentDate, 1))}
                     variant="outlined"
                 >
-                    Next Week
+                    Tomorrow
                 </Button>
             </Box>
-            <Grid container spacing={2} sx={{ flexWrap: "wrap" }}>
-                {renderWeekDays()}
-            </Grid>
+
+            {renderDay()}
+
+            {renderIngredientSummary()}
 
             <Modal
                 open={isModalOpen}
@@ -252,8 +484,7 @@ const MealPlanner: React.FC = () => {
                         variant="h6"
                         component="h2"
                     >
-                        Add a Recipe for{" "}
-                        {selectedDate && format(selectedDate, "MMM d")}
+                        Add a Recipe for {format(currentDate, "MMM d")}
                     </Typography>
                     <List>
                         {recipes.map((recipe) => (

@@ -36,18 +36,6 @@ function RecipeDetails() {
             });
     }, [id]);
 
-    const handleAddMissingToGroceryList = async () => {
-        try {
-            await axios.post(
-                `${API_BASE_URL}/recipes/${id}/add-missing-to-grocery-list`
-            );
-            setSnackbarMessage("Missing ingredients added to grocery list!");
-        } catch (error) {
-            console.error("Error adding missing ingredients:", error);
-            setSnackbarMessage("Failed to add ingredients.");
-        }
-    };
-
     const handleNavigateToMealPlanner = () => {
         navigate("/meal-planner");
     };
@@ -59,7 +47,7 @@ function RecipeDetails() {
     return (
         <Container>
             <IconButton
-                onClick={() => navigate("/recipes")}
+                onClick={() => navigate(-1)}
                 sx={{ order: { xs: 2, sm: 1 } }}
             >
                 <ArrowLeft />
@@ -85,17 +73,10 @@ function RecipeDetails() {
                 <Box sx={{ display: "flex", gap: 1, order: { xs: 3, sm: 3 } }}>
                     <Button
                         onClick={handleNavigateToMealPlanner}
-                        variant="outlined"
-                        size="medium"
-                    >
-                        Add to Meal Plan
-                    </Button>
-                    <Button
-                        onClick={handleAddMissingToGroceryList}
                         variant="contained"
                         size="medium"
                     >
-                        Add Missing to Grocery List
+                        Add to Meal Plan
                     </Button>
                 </Box>
             </Box>

@@ -19,6 +19,7 @@ import {
     DialogContent,
     DialogContentText,
     DialogTitle,
+    Paper,
 } from "@mui/material";
 import { Edit2, Trash2, ChevronDown, ChevronUp } from "react-feather";
 import { ITask } from "../interfaces";
@@ -152,9 +153,11 @@ function TodoList() {
                 display="flex"
                 justifyContent="space-between"
                 alignItems="center"
+                flexWrap="wrap"
+                gap={2}
                 mb={4}
             >
-                <Typography variant="h4" component="h1" gutterBottom>
+                <Typography variant="h2" component="h1" sx={{ mb: 0 }}>
                     To-Do List
                 </Typography>
                 <Button
@@ -162,32 +165,15 @@ function TodoList() {
                     variant="contained"
                     color="secondary"
                     size="large"
-                    sx={{
-                        borderRadius: 8,
-                        fontWeight: 600,
-                        fontSize: "1.05rem",
-                        px: 3,
-                        py: 1.2,
-                        boxShadow: "0 2px 8px 0 rgba(247, 197, 159, 0.10)",
-                        letterSpacing: 0.2,
-                        minWidth: 0,
-                        backgroundColor: "secondary.main",
-                        color: "secondary.contrastText",
-                        "&:hover": {
-                            backgroundColor: "secondary.light",
-                            color: "secondary.contrastText",
-                            boxShadow: "0 4px 16px 0 rgba(247, 197, 159, 0.18)",
-                        },
-                    }}
                 >
                     + Add Task
                 </Button>
             </Box>
             <List
                 sx={{
-                    bgcolor: "background.paper",
+                    bgcolor: "primary.light",
                     borderRadius: 4,
-                    boxShadow: "0 1px 8px 0 rgba(60,80,60,0.07)",
+                    p: { xs: 1, sm: 2 },
                 }}
             >
                 {tasks.map((task, index) => (
@@ -291,65 +277,67 @@ function TodoList() {
             </List>
 
             <Box mt={4}>
-                <Divider sx={{ my: 3 }} />
-                <Button
-                    onClick={() => setIsArchivedVisible(!isArchivedVisible)}
-                    fullWidth
-                    color="inherit"
-                    sx={{
-                        justifyContent: "space-between",
-                        fontWeight: 500,
-                        fontSize: "1rem",
-                        borderRadius: 8,
-                        py: 1.2,
-                        px: 2,
-                        textTransform: "none",
-                    }}
-                    endIcon={
-                        isArchivedVisible ? <ChevronUp /> : <ChevronDown />
-                    }
+                <Paper
+                    elevation={0}
+                    sx={{ borderRadius: 4, bgcolor: "background.paper", p: 1 }}
                 >
-                    Completed Items
-                </Button>
-                <Collapse in={isArchivedVisible}>
-                    <List sx={{ mt: 2 }}>
-                        {archivedTasks.map((task) => (
-                            <ListItem
-                                key={task._id}
-                                sx={{
-                                    bgcolor: "background.paper",
-                                    borderRadius: 2,
-                                    mb: 1,
-                                    opacity: 0.7,
-                                    boxShadow:
-                                        "0 1px 4px 0 rgba(60,80,60,0.04)",
-                                }}
-                                secondaryAction={
-                                    <IconButton
-                                        edge="end"
-                                        aria-label="delete"
-                                        onClick={() =>
-                                            task._id &&
-                                            openDeleteDialog(task._id)
-                                        }
-                                        color="error"
-                                    >
-                                        <Trash2 size={18} />
-                                    </IconButton>
-                                }
-                            >
-                                <ListItemText
-                                    primary={task.title}
+                    <Button
+                        onClick={() => setIsArchivedVisible(!isArchivedVisible)}
+                        fullWidth
+                        color="inherit"
+                        sx={{
+                            justifyContent: "space-between",
+                            fontWeight: 600,
+                            fontSize: "1.1rem",
+                            py: 1.5,
+                            px: 2,
+                            textTransform: "none",
+                            color: "text.primary",
+                        }}
+                        endIcon={
+                            isArchivedVisible ? <ChevronUp /> : <ChevronDown />
+                        }
+                    >
+                        Completed Items
+                    </Button>
+                    <Collapse in={isArchivedVisible}>
+                        <List sx={{ pt: 1, pb: 1 }}>
+                            {archivedTasks.map((task) => (
+                                <ListItem
+                                    key={task._id}
                                     sx={{
-                                        textDecoration: "line-through",
-                                        color: "text.secondary",
-                                        fontWeight: 500,
+                                        bgcolor: "#fafafa",
+                                        borderRadius: 2,
+                                        mb: 1,
+                                        opacity: 0.8,
                                     }}
-                                />
-                            </ListItem>
-                        ))}
-                    </List>
-                </Collapse>
+                                    secondaryAction={
+                                        <IconButton
+                                            edge="end"
+                                            aria-label="delete"
+                                            onClick={() =>
+                                                task._id &&
+                                                openDeleteDialog(task._id)
+                                            }
+                                            color="error"
+                                        >
+                                            <Trash2 size={18} />
+                                        </IconButton>
+                                    }
+                                >
+                                    <ListItemText
+                                        primary={task.title}
+                                        sx={{
+                                            textDecoration: "line-through",
+                                            color: "text.secondary",
+                                            fontWeight: 500,
+                                        }}
+                                    />
+                                </ListItem>
+                            ))}
+                        </List>
+                    </Collapse>
+                </Paper>
             </Box>
 
             <Dialog
